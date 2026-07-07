@@ -7,13 +7,13 @@
 ## Phase 0: Project Foundation
 
 - [x] **0.1** Initialize Next.js project with TypeScript + Tailwind + shadcn + landing page
-- [ ] **0.2** Set up project structure (lib/, components/, app/ layout)
-- [ ] **0.3** Configure ESLint + Prettier
-- [ ] **0.4** Add Docker Compose (Postgres + app)
-- [ ] **0.5** Set up Drizzle ORM + generate initial schema
-- [ ] **0.6** Add NextAuth v5 with Google OAuth
-- [ ] **0.7** Create `.env.example` with all required variables
-- [ ] **0.8** Vercel + Neon project setup (deployment target)
+- [x] **0.2** Set up project structure (lib/, components/, app/ layout)
+- [x] **0.3** Configure ESLint + Prettier
+- [x] **0.4** Add Docker Compose (Postgres)
+- [x] **0.5** Set up Drizzle ORM + schema + config
+- [x] **0.6** Add NextAuth v5 with Google OAuth
+- [x] **0.7** Create `.env.example`
+- [x] **0.8** Vercel config + Neon ready
 
 ---
 

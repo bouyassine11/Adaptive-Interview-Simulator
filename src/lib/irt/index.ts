@@ -1,8 +1,10 @@
-export function threePL(
-  theta: number,
-  a: number,
-  b: number,
-  c: number,
-): number {
-  return c + (1 - c) / (1 + Math.exp(-a * (theta - b)));
-}
+export { threePL, logLikelihood, fisherInformation, standardError, expectedScore } from "./model";
+export { estimateEAP, initialAbility } from "./ability";
+export { selectNextQuestion, sessionPrecision } from "./selection";
+export type { IRTQuestion } from "./selection";
+export { updateConceptMastery, weakConcepts } from "./concepts";
+export type { ConceptState } from "./concepts";
+export { calibrateDifficulty, guessDifficultyFromStem } from "./calibration";
+export type { QuestionFeatures } from "./calibration";
+export { createSession, selectQuestion, recordAnswer, shouldEnd } from "./session";
+export type { SessionState, SessionConfig, SessionResult } from "./session";

@@ -24,7 +24,7 @@ const input = {
 const prompt = buildGradingPrompt(input);
 assert(typeof prompt === "string", `Grading prompt is a string, length=${prompt.length}`);
 assert(prompt.includes("CAP theorem"), `Prompt contains question`);
-assert(prompt.includes("user answer", "lowercased") || prompt.toLowerCase().includes("user answer"),
+assert(prompt.includes("user answer") || prompt.toLowerCase().includes("user answer"),
   `Prompt instructs about user answer`);
 
 const detailed = buildDetailedPrompt(input);

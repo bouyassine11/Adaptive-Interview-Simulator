@@ -10,7 +10,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -151,7 +151,7 @@ function Navbar() {
             Topics
           </Link>
         </nav>
-        <Button size="sm">Start Practicing</Button>
+        <Link href="/interview" className={buttonVariants({ size: "sm" })}>Start Practicing</Link>
       </div>
     </header>
   );
@@ -180,17 +180,13 @@ function Hero() {
             tracking — so you always know exactly what to study next.
           </p>
           <div className="mt-10 flex items-center justify-center gap-4">
-            <Button size="lg" className="h-12 px-8 text-base">
+            <Link href="/interview" className={buttonVariants({ size: "lg", className: "h-12 px-8 text-base" })}>
               Start Free Practice
               <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="h-12 px-8 text-base"
-            >
-              View Demo
-            </Button>
+            </Link>
+            <Link href="/dashboard" className={buttonVariants({ variant: "outline", size: "lg", className: "h-12 px-8 text-base" })}>
+              View Dashboard
+            </Link>
           </div>
         </div>
       </div>
@@ -352,10 +348,10 @@ function CTA() {
             grading, and a mastery map that shows you exactly where to focus.
           </p>
           <div className="mt-10">
-            <Button size="lg" className="h-12 px-8 text-base">
+            <Link href="/interview" className={buttonVariants({ size: "lg", className: "h-12 px-8 text-base inline-flex items-center" })}>
               Start Free Practice
               <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
+            </Link>
           </div>
         </div>
       </div>

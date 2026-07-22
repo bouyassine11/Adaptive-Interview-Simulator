@@ -8,11 +8,19 @@ import { Textarea } from "@/components/ui/textarea";
 interface AnswerInputProps {
   onSubmit: (answer: string) => void;
   disabled: boolean;
+  draftKey?: string;
 }
 
-export function AnswerInput({ onSubmit, disabled }: AnswerInputProps) {
+export function AnswerInput({ onSubmit, disabled, draftKey }: AnswerInputProps) {
   const [answer, setAnswer] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (draftKey) {
+      const saved = localStorage.getItem(draftKey);
+      if (saved) setAnswer(saved);
+    }
+  }, [draftKey]);
 
   useEffect(() => {
     if (!disabled) {
@@ -20,11 +28,23 @@ export function AnswerInput({ onSubmit, disabled }: AnswerInputProps) {
     }
   }, [disabled]);
 
+  function handleChange(value: string) {
+    setAnswer(value);
+    if (draftKey) {
+      if (value) {
+        localStorage.setItem(draftKey, value);
+      } else {
+        localStorage.removeItem(draftKey);
+      }
+    }
+  }
+
   function handleSubmit() {
     const trimmed = answer.trim();
     if (!trimmed || disabled) return;
     onSubmit(trimmed);
     setAnswer("");
+    if (draftKey) localStorage.removeItem(draftKey);
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -39,7 +59,7 @@ export function AnswerInput({ onSubmit, disabled }: AnswerInputProps) {
       <Textarea
         ref={textareaRef}
         value={answer}
-        onChange={(e) => setAnswer(e.target.value)}
+        onChange={(e) => handleChange(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="Type your answer here..."
         disabled={disabled}

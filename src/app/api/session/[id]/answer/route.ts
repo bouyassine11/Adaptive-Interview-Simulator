@@ -8,6 +8,7 @@ import { recordAnswer, shouldEnd } from "@/lib/irt/session";
 import { endSession } from "@/lib/db/queries/sessions";
 import { upsertMastery } from "@/lib/db/queries/mastery";
 import { gradeAnswer } from "@/lib/llm/grader";
+import { checkRateLimit } from "@/lib/api/rate-limit";
 import type { IRTQuestion } from "@/lib/irt/selection";
 
 export async function POST(
@@ -16,6 +17,14 @@ export async function POST(
 ) {
   const authResult = await requireAuth();
   if ("error" in authResult) return authResult.error;
+
+  const rate = checkRateLimit(`answer:${authResult.userId}`, 15, 60_000);
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: `Rate limited. Try again in ${Math.ceil((rate.retryAfterMs ?? 0) / 1000)}s` },
+      { status: 429 },
+    );
+  }
 
   const { id } = await params;
   const body = await req.json();

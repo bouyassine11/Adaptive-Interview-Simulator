@@ -10,6 +10,10 @@ import { AnswerInput } from "@/components/interview/answer-input";
 import { ScoreDisplay } from "@/components/interview/score-display";
 import { SessionProgress } from "@/components/interview/session-progress";
 import { SessionEnd } from "@/components/interview/session-end";
+import { useToast } from "@/components/ui/toast";
+import { useAutoSave } from "@/lib/hooks/use-auto-save";
+import { useKeyboardShortcuts, type ShortcutMap } from "@/lib/hooks/use-keyboard-shortcuts";
+import { useSessionTimeout } from "@/lib/hooks/use-session-timeout";
 
 interface Question {
   id: string;
@@ -40,12 +44,35 @@ type Phase = "loading" | "question" | "grading" | "score" | "ended";
 
 export default function SessionPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
+  const { toast } = useToast();
   const [sessionId, setSessionId] = useState<string>("");
   const [phase, setPhase] = useState<Phase>("loading");
   const [question, setQuestion] = useState<Question | null>(null);
   const [grade, setGrade] = useState<GradeResult | null>(null);
   const [session, setSession] = useState<SessionData | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const draftKey = sessionId ? `draft-${sessionId}` : "";
+  const { load: loadDraft, clear: clearDraft } = useAutoSave(draftKey, "");
+
+  const { showWarning } = useSessionTimeout(() => {
+    toast("Session timed out due to inactivity", "error");
+    router.push("/dashboard");
+  });
+
+  const handleNext = useCallback(() => {
+    if (session?.ended || (session?.step ?? 0) >= (session?.maxSteps ?? 10)) {
+      setPhase("ended");
+    } else {
+      fetchNext(sessionId);
+    }
+  }, [session, sessionId]);
+
+  const shortcuts: ShortcutMap = {
+    ...(phase === "score" ? { "mod+n": handleNext } : {}),
+  };
+
+  useKeyboardShortcuts(shortcuts);
 
   useEffect(() => {
     params.then((p) => setSessionId(p.id));
@@ -63,6 +90,7 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
       const data = await res.json();
       if (data.done) {
         setSession((prev) => prev ? { ...prev, theta: data.theta, se: data.se, step: data.step, ended: true } : null);
+        clearDraft();
         setPhase("ended");
       } else {
         setQuestion(data.question);
@@ -82,7 +110,7 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
       setError(e instanceof Error ? e.message : "Something went wrong");
       setPhase("question");
     }
-  }, [router]);
+  }, [router, clearDraft]);
 
   useEffect(() => {
     if (sessionId) fetchNext(sessionId);
@@ -92,6 +120,7 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
     if (!question || !sessionId) return;
     setPhase("grading");
     setError(null);
+    clearDraft();
     try {
       const res = await fetch(`/api/session/${sessionId}/answer`, {
         method: "POST",
@@ -111,18 +140,12 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
         step: data.session.step,
         ended: data.session.ended,
       } : null);
+      toast("Answer graded successfully", "success");
       setPhase("score");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong");
+      toast("Failed to submit answer", "error");
       setPhase("question");
-    }
-  }
-
-  function handleNext() {
-    if (session?.ended || (session?.step ?? 0) >= (session?.maxSteps ?? 10)) {
-      setPhase("ended");
-    } else {
-      fetchNext(sessionId);
     }
   }
 
@@ -146,6 +169,13 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
 
       <main className="flex-1">
         <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
+          {showWarning && (
+            <div className="mb-6 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>Your session will time out in 30 seconds due to inactivity. Move your mouse or press a key to stay.</span>
+            </div>
+          )}
+
           {session && phase !== "ended" && (
             <div className="mb-8">
               <SessionProgress
@@ -184,6 +214,7 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
               <AnswerInput
                 onSubmit={handleSubmitAnswer}
                 disabled={phase === "grading"}
+                draftKey={sessionId ? `draft-${sessionId}-${question.id}` : undefined}
               />
               {phase === "grading" && (
                 <div className="flex items-center justify-center gap-2 py-4 text-sm text-muted-foreground">

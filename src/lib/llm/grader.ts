@@ -27,13 +27,13 @@ export async function gradeAnswer(
       ? buildDetailedPrompt(input)
       : buildGradingPrompt(input);
 
+    let raw: string;
     const controller = new AbortController();
     const timeout = options?.timeout ?? 15000;
     const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-    let raw: string;
     try {
-      raw = await client.infer(prompt);
+      raw = await client.infer(prompt, { signal: controller.signal });
     } finally {
       clearTimeout(timeoutId);
     }

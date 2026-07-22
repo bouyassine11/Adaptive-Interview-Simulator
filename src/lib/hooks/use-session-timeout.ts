@@ -9,6 +9,8 @@ export function useSessionTimeout(onTimeout: () => void) {
   const [showWarning, setShowWarning] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const warnRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const callbackRef = useRef(onTimeout);
+  callbackRef.current = onTimeout;
 
   useEffect(() => {
     function reset() {
@@ -21,7 +23,7 @@ export function useSessionTimeout(onTimeout: () => void) {
       }, IDLE_TIMEOUT - WARN_BEFORE);
 
       timerRef.current = setTimeout(() => {
-        onTimeout();
+        callbackRef.current();
       }, IDLE_TIMEOUT);
     }
 
@@ -40,7 +42,7 @@ export function useSessionTimeout(onTimeout: () => void) {
       window.removeEventListener("scroll", reset);
       window.removeEventListener("click", reset);
     };
-  }, [onTimeout]);
+  }, []);
 
   return { showWarning };
 }

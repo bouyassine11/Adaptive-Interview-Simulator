@@ -15,21 +15,23 @@ export class HFClient {
 
   async infer(
     prompt: string,
-    options?: { useFallback?: boolean },
+    options?: { useFallback?: boolean; signal?: AbortSignal },
   ): Promise<string> {
     const model = options?.useFallback ? FALLBACK_MODEL : PRIMARY_MODEL;
-    return this.requestWithRetry(model, prompt);
+    return this.requestWithRetry(model, prompt, 1, options?.signal);
   }
 
   private async requestWithRetry(
     model: string,
     prompt: string,
     attempt = 1,
+    signal?: AbortSignal,
   ): Promise<string> {
     const start = performance.now();
 
     try {
       const res = await fetch(model, {
+        signal,
         headers: {
           Authorization: `Bearer ${this.token}`,
           "Content-Type": "application/json",
@@ -55,14 +57,14 @@ export class HFClient {
       if (res.status === 503 && attempt <= MAX_RETRIES) {
         const delay = INITIAL_RETRY_DELAY * Math.pow(2, attempt - 1);
         await sleep(delay);
-        return this.requestWithRetry(model, prompt, attempt + 1);
+        return this.requestWithRetry(model, prompt, attempt + 1, signal);
       }
 
       if (res.status === 429 && attempt <= MAX_RETRIES) {
         const retryAfter = res.headers.get("retry-after");
         const delay = retryAfter ? parseInt(retryAfter) * 1000 : 5000;
         await sleep(delay);
-        return this.requestWithRetry(model, prompt, attempt + 1);
+        return this.requestWithRetry(model, prompt, attempt + 1, signal);
       }
 
       throw new ApiError(res.status, `HF API error: ${res.status}`, latency);
@@ -71,7 +73,7 @@ export class HFClient {
       if (attempt <= MAX_RETRIES) {
         const delay = INITIAL_RETRY_DELAY * Math.pow(2, attempt - 1);
         await sleep(delay);
-        return this.requestWithRetry(model, prompt, attempt + 1);
+        return this.requestWithRetry(model, prompt, attempt + 1, signal);
       }
       throw err;
     }

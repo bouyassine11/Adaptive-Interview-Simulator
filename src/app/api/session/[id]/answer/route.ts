@@ -27,12 +27,30 @@ export async function POST(
   }
 
   const { id } = await params;
-  const body = await req.json();
+
+  let body: { questionId?: string; answer?: string };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
   const { questionId, answer: userAnswer } = body;
 
-  if (!questionId || !userAnswer) {
+  if (
+    !questionId ||
+    !userAnswer ||
+    typeof questionId !== "string" ||
+    typeof userAnswer !== "string"
+  ) {
     return NextResponse.json(
-      { error: "questionId and answer are required" },
+      { error: "questionId and answer are required (strings)" },
+      { status: 400 },
+    );
+  }
+
+  if (userAnswer.length > 10000) {
+    return NextResponse.json(
+      { error: "Answer too long (max 10,000 characters)" },
       { status: 400 },
     );
   }

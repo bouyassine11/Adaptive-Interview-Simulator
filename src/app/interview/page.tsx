@@ -24,10 +24,6 @@ export default function InterviewStartPage() {
     setLoading(true);
     try {
       const res = await fetch("/api/session/start", { method: "POST" });
-      if (!res.ok) {
-        router.push("/api/auth/signin");
-        return;
-      }
       const data = await res.json();
       router.push(`/interview/${data.sessionId}`);
     } catch {

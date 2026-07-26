@@ -83,8 +83,7 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
     setError(null);
     try {
       const res = await fetch(`/api/session/${sid}/next`);
-      if (!res.ok) {
-        if (res.status === 401) { router.push("/api/auth/signin"); return; }
+        if (!res.ok) {
         throw new Error("Failed to load question");
       }
       const data = await res.json();
@@ -127,8 +126,7 @@ export default function SessionPage({ params }: { params: Promise<{ id: string }
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ questionId: question.id, answer }),
       });
-      if (!res.ok) {
-        if (res.status === 401) { router.push("/api/auth/signin"); return; }
+        if (!res.ok) {
         throw new Error("Failed to submit answer");
       }
       const data = await res.json();
